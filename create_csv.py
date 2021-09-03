@@ -23,7 +23,6 @@ def read_txt (column_name):
     return returned_columns
 
 if __name__ == '__main__':
-    data_path = r"data/UCI HAR Dataset/UCI HAR Dataset"
     parser = argparse.ArgumentParser()
     parser.add_argument('--path', type=str, default=r"data/UCI HAR Dataset/UCI HAR Dataset", help='UCI dataset data path')
     parser.add_argument('--save', type=str, default='data/UCI_Smartphone_Raw.csv', help='save file name')
