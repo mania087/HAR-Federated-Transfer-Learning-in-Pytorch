@@ -98,7 +98,7 @@ def train(n_epochs, trainloader, validloader, model, optimizer, criterion, save_
     
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--csv_path', type=str, default='../../dataset/UCI_smartphone/UCI_Smartphone_Raw.csv', help='CSV data path')
+    parser.add_argument('--csv_path', type=str, default='./data/UCI_Smartphone_Raw.csv', help='CSV data path')
     parser.add_argument('--round', type=int, default=80, help='Round for federated learning')
     parser.add_argument('--internal_epoch', type=int, default=10, help='Internal epoch of each client')
     parser.add_argument('--global_model_path', type=str, default ='', help='Trained global model path')

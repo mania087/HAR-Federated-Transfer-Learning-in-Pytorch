@@ -171,20 +171,37 @@ class Central():
     
                 
     def client_evalutions(self, sampled_clients = None):
-        
+        to_print=[]
         if sampled_clients is not None:
             for idx in tqdm(sampled_clients, leave = False):
                 # do evalution
                 loss, accuracy, recall, precission, f1score  = self.clients[idx].local_evaluation()
                 
-                logging = f"Round {self.round}: \t Client {self.clients[idx].id} Accuracy: {accuracy} \tRecall: {recall} \tPrecission:{precission} \tF1-score: {f1score}"
-                print(logging)
+                to_print.append({
+                    "id": idx,
+                    "loss": loss,
+                    "accuracy": accuracy,
+                    "recall": recall,
+                    "precission": precission,
+                    "f1score": f1score
+                })
+                
         else:
             for client in tqdm(self.clients, leave=False):
                 loss, accuracy, recall, precission, f1score  = client.local_evaluation()
                 
-                logging = f"Round {self.round}: \t Client {client.id} Accuracy: {accuracy} \tRecall: {recall} \tPrecission:{precission} \tF1-score: {f1score}"
-                print(logging)
+                to_print.append({
+                    "id": client.id,
+                    "loss": loss,
+                    "accuracy": accuracy,
+                    "recall": recall,
+                    "precission": precission,
+                    "f1score": f1score
+                })
+        
+        for data in to_print:
+            logging = f"Round {self.round}: \t Client {data['id']} Accuracy: {data['accuracy']} \tRecall: {data['recall']} \tPrecission:{data['precission']} \tF1-score: {data['f1score']}"
+            print(logging)
     
     def evaluate_global_model(self):
         self.model.eval()

@@ -1,2 +1,3 @@
 data/*
 __pycache__/
+client_model/*

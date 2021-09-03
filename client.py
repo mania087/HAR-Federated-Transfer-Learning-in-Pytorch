@@ -1,5 +1,3 @@
-# This is a modified implementation of FedAvg from https://github.com/vaseline555/Federated-Learning-FedAvg-PyTorch
-# Edited for Federated Transfer Learning
 import torch
 import numpy as np
 from sklearn.model_selection import train_test_split
