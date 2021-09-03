@@ -1,6 +1,6 @@
 # HAR Federated Transfer Learning in PyTorch [![arXiv](https://img.shields.io/badge/arXiv-1907.05629-f9f107.svg)](https://arxiv.org/abs/1907.09173)
 
-This is an unofficial implementation of Federated Transfer Learning using UCI Smarthphone dataset
+This is an unofficial implementation of Federated Transfer Learning using UCI Smarthphone dataset from FedHealth [paper](https://arxiv.org/abs/1907.09173)
 You can download the dataset at [here](https://archive.ics.uci.edu/ml/datasets/human+activity+recognition+using+smartphones)
 
 ## Setup
