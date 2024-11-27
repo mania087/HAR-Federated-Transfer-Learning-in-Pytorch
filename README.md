@@ -16,14 +16,15 @@ python main.py
 ```
 - Using trained global model uses
 ```sh
-python main.py --global_model_path ./global_model/saved_model.pt
+python main.py --global_model_path ./global_model/Global_CNN.pt
 ```
 ## Configuration
 
 | Parameter | Description |
 | ------ | ------ |
 | csv_path | CSV data path |
-| round | Round for federated learning |
+| round | Round for the cloud model training |
+| adaptation_round | Round for the federated transfer learning |
 | internal_epoch | Internal epoch of each client |
 | global_model_path | Trained global model path |
 | batch_size' | Batch size used |
