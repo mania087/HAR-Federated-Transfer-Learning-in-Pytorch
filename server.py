@@ -91,7 +91,7 @@ class Central():
 
         return clients
     
-    def transmit_model(self, sampled_client_indices=None):
+    def transmit_model(self, sampled_client_indices=None, different_storage=False):
     
         if sampled_client_indices is None:
             # send the global model to all clients before the very first and after the last federated round
@@ -101,7 +101,10 @@ class Central():
             print(logging)
             
             for client in tqdm(self.clients, leave=False):
-                client.model = copy.deepcopy(self.model)
+                if different_storage:
+                    client.global_model = copy.deepcopy(self.model)
+                else:
+                    client.model = copy.deepcopy(self.model)
             
         else:
             # send the global model to selected clients
@@ -111,7 +114,10 @@ class Central():
             print(logging)
 
             for idx in tqdm(sampled_client_indices, leave=False):
-                self.clients[idx].model = copy.deepcopy(self.model)
+                if different_storage:
+                    self.clients[idx].global_model = copy.deepcopy(self.model)
+                else:
+                    self.clients[idx].model = copy.deepcopy(self.model)
             
     def sample_clients(self):
         # sample clients randommly
@@ -250,8 +256,9 @@ class Central():
         # average each updated model parameters of the selected clients and update the global model
         self.average_model(sampled_clients, mixing_coefficients)
         
-        # transmit again
-        self.transmit_model(sampled_clients)
+        
+        # transmit again but don't overwrite the client model
+        self.transmit_model(sampled_clients, different_storage=True)
         
         # perform transfer learning
         self.transfer_learning_clients(sampled_clients)

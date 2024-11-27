@@ -5,6 +5,7 @@ import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 import argparse
+import os
 from model import SimpleCNN
 from server import Central
 from torch.utils.data.sampler import SubsetRandomSampler
@@ -21,13 +22,6 @@ CLIENT_DATASET = [26,27,28,29,30]
 BATCH_SIZE = 64
 LEARNING_RATE = 0.01
 
-def freeze_layer(model, num_layers):
-    ct = 0
-    for child in model.children():
-        ct += 1
-        if ct <= num_layers:
-            for param in child.parameters():
-                param.requires_grad = False
 
 def train(n_epochs, trainloader, validloader, model, optimizer, criterion, save_dir = 'global_model/Global_CNN.pt'):
     
@@ -99,7 +93,8 @@ def train(n_epochs, trainloader, validloader, model, optimizer, criterion, save_
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--csv_path', type=str, default='./data/UCI_Smartphone_Raw.csv', help='CSV data path')
-    parser.add_argument('--round', type=int, default=80, help='Round for federated learning')
+    parser.add_argument('--round', type=int, default=80, help='Round for cloud model pretraining')
+    parser.add_argument('--adaptation_round', type=int, default=10, help='Round for fl adaptation')
     parser.add_argument('--internal_epoch', type=int, default=10, help='Internal epoch of each client')
     parser.add_argument('--global_model_path', type=str, default ='', help='Trained global model path')
     parser.add_argument('--batch_size', type=int, default=64, help='Batch size used')
@@ -115,6 +110,16 @@ if __name__ == '__main__':
     public_data, public_label = load_subjects_data(args.csv_path, PUBLIC_DATASET)
     public_data = np.concatenate([np.array(i) for i in public_data])
     public_label = np.concatenate([np.array(i) for i in public_label])
+    
+    # create client_model and global_model folder if they do not exist
+    if not os.path.exists('global_model'):
+        os.makedirs('global_model')
+    if not os.path.exists('client_model'):
+        os.makedirs('client_model')
+        
+    ## set seed
+    np.random.seed(seed=42)
+    torch.manual_seed(0)
     
     print(f'Public Data shape: {public_data.shape}')
     
@@ -161,7 +166,7 @@ if __name__ == '__main__':
     ## Federated Transfer Learning Setup
     fed_config ={
         "C": args.C, # fraction of sampled client
-        "R": args.round, # number of rounds
+        "R": args.adaptation_round, # one time adaptation
         "epoch": args.internal_epoch, # number of local epoch
         "batch_size": args.batch_size, # number of batch size
         "val_split": args.val_split,
@@ -175,8 +180,7 @@ if __name__ == '__main__':
         "weight_decay": args.weight_decay,
         "name": torch.optim.SGD
     }
-    # freeze some layer of the model
-    freeze_layer(model,2)
+    
     # Server
     print('Setup Federated Transfer Learning settings...')
     central = Central(client_distributed_data, 

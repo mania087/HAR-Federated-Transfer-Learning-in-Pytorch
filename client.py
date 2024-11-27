@@ -82,50 +82,56 @@ class Client():
         self.weight_decay = client_config["weight_decay"]
         self.lr_patience = client_config["lr_patience"]
         self.coral_lambda = client_config["coral_lambda"]
+        self.global_model = None
     
     def __len__(self):
         """Total local data."""
         return len(self.dataloader.sampler)
+    
+    def freeze_layer(self, model, num_layers):
+        # freeze some layer of the model
+        ct = 0
+        for child in model.children():
+            ct += 1
+            if ct <= num_layers:
+                for param in child.parameters():
+                    param.requires_grad = False
                     
     def transfer_learning(self):
-        # use coral and calculate forward with local model on public dataset and own dataset
+        # use coral and calculate forward on local dataset with global and local model
+        
+        # freeze the global model 
+        self.freeze_layer(self.global_model, 2)
+        self.global_model.train()
+        self.global_model.to(self.device)
+        
         self.model.train()
         self.model.to(self.device)
         
-        opt = self.optimizer(self.model.parameters(),
-                             lr=self.lr, 
+        opt = self.optimizer(list(self.model.parameters())+ list(self.global_model.parameters()),
+                             lr=0.000001, 
                              weight_decay= self.weight_decay, 
                              momentum = self.momentum)
+        
         criterion = self.criterion()
         
         for epoch in range(self.local_epoch):
-            client_dataset = iter(self.dataloader)
-            for source_img, source_label in self.connected_public_dataset:
-                try:
-                    target_img, target_label = next(client_dataset)
-                except StopIteration:
-                    client_dataset = iter(self.dataloader)
-                    target_img, target_label = next(client_dataset)
-
-                source_img = source_img.to(self.device)
-                source_label = source_label.to(self.device)
-                target_img = target_img.to(self.device)
-                target_label = target_label.to(self.device)
+            for data,target in self.dataloader:
+                data, target = data.to(self.device), target.to(self.device)
                 
                 opt.zero_grad()
                 
                 # forward
-                out_source = self.model(source_img)
-                out_target = self.model(target_img)
+                out_source = self.global_model(data)
+                out_target = self.model(data)
                 
                 # calculate loss
-                cl_loss_source = criterion(out_source, source_label)
-                cl_loss_target = criterion(out_target, target_label)
+                cl_loss = criterion(out_target, target)
                 
                 # calculate CORAL
                 coral_loss = CORAL(out_source, out_target)
                 
-                total_loss =  self.coral_lambda * coral_loss + cl_loss_target + cl_loss_source
+                total_loss =  self.coral_lambda * coral_loss + cl_loss
                 
                 total_loss.backward()
                 
